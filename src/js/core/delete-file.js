@@ -42,15 +42,20 @@ export class DeleteFile {
      * Deletes a file with the given fileGuid.
      *
      * @param {string} fileGuid - The unique identifier of the file to delete.
+     * @param {boolean} [confirm=true] - Whether to show the confirmation modal.
      * @return {void}
      */
-    delete(fileGuid) {
+    delete(fileGuid, confirm = true) {
         if (!fileGuid || fileGuid.length <= 30) {
             return;
         }
 
-        this.#uikit.modal.confirm('Are you sure you want to delete this file! It can not be undone!')
-            .then(() => this.#serverDelete(fileGuid));
+        if (confirm) {
+            this.#uikit.modal.confirm('Are you sure you want to delete this file! It can not be undone!')
+                .then(() => this.#serverDelete(fileGuid));
+        } else {
+            this.#serverDelete(fileGuid);
+        }
     }
 
     /**

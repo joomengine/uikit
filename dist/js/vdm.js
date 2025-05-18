@@ -1,7 +1,7 @@
 /**
- * VDM Uikit v3.0.0
+ * VDM Uikit v3.0.1
  * https://git.vdm.dev/joomla/uikit
- * (c) 2020 - 2024 Llewellyn van der Merwe
+ * (c) 2020 - 2025 Llewellyn van der Merwe
  * MIT License
  **/
 
@@ -741,15 +741,20 @@
          * Deletes a file with the given fileGuid.
          *
          * @param {string} fileGuid - The unique identifier of the file to delete.
+         * @param {boolean} [confirm=true] - Whether to show the confirmation modal.
          * @return {void}
          */
-        delete(fileGuid) {
+        delete(fileGuid, confirm = true) {
             if (!fileGuid || fileGuid.length <= 30) {
                 return;
             }
 
-            this.#uikit.modal.confirm('Are you sure you want to delete this file! It can not be undone!')
-                .then(() => this.#serverDelete(fileGuid));
+            if (confirm) {
+                this.#uikit.modal.confirm('Are you sure you want to delete this file! It can not be undone!')
+                    .then(() => this.#serverDelete(fileGuid));
+            } else {
+                this.#serverDelete(fileGuid);
+            }
         }
 
         /**
@@ -942,14 +947,53 @@
          * @return {void} - No return value.
          */
         global.VDMDeleteFile = function(id, guid) {
-            // Check if the delete_file object exists and is an instance of DeleteFile
-            if (global.VDM.uikit.delete_file[id] && global.VDM.uikit.delete_file[id] instanceof DeleteFile) {
-                // Call the delete method on the DeleteFile instance
-                global.VDM.uikit.delete_file[id].delete(guid);
-            } else {
-                // Log an error or handle the case where the object is missing or invalid
+            const deleteInstance = global.VDM.uikit.delete_file[id];
+
+            if (!deleteInstance || !(deleteInstance instanceof DeleteFile)) {
                 console.error(`Error: delete_file with id ${id} is either not defined or not an instance of DeleteFile.`);
             }
+
+            deleteInstance.delete(guid);
+        };
+
+        /**
+         * Performs a delete operation on the specified set of files.
+         *
+         * @param {string} id - The identifier of the delete_file object.
+         * @param {string[]} guids - Array of file GUIDs to delete.
+         *
+         * @return {void}
+         */
+        global.VDMDeleteFiles = function(id, guids) {
+            const deleteInstance = global.VDM.uikit.delete_file[id];
+
+            if (!Array.isArray(guids) || guids.length === 0) {
+                console.error('No GUIDs provided for deletion.');
+                return;
+            }
+
+            if (!deleteInstance || !(deleteInstance instanceof DeleteFile)) {
+                console.error(`Error: delete_file with id ${id} is either not defined or not an instance of DeleteFile.`);
+                return;
+            }
+
+            const [first, ...rest] = guids;
+
+            const handler = (event) => {
+                if (event.detail?.guid === first) {
+                    // Cleanup
+                    document.removeEventListener('vdm.uikit.delete.afterFileDelete', handler);
+
+                    // Delete remaining without confirmation
+                    rest.forEach(guid => deleteInstance.delete(guid, false));
+                }
+            };
+
+            // Listen for confirmation result of first file
+            document.addEventListener('vdm.uikit.delete.afterFileDelete', handler);
+
+            // Initiate first deletion (with confirmation inside delete())
+            deleteInstance.delete(first);
         };
 
     })(window);

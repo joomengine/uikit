@@ -91,14 +91,53 @@ import { DeleteFile } from './core/delete-file';
      * @return {void} - No return value.
      */
     global.VDMDeleteFile = function(id, guid) {
-        // Check if the delete_file object exists and is an instance of DeleteFile
-        if (global.VDM.uikit.delete_file[id] && global.VDM.uikit.delete_file[id] instanceof DeleteFile) {
-            // Call the delete method on the DeleteFile instance
-            global.VDM.uikit.delete_file[id].delete(guid);
-        } else {
-            // Log an error or handle the case where the object is missing or invalid
+        const deleteInstance = global.VDM.uikit.delete_file[id];
+
+        if (!deleteInstance || !(deleteInstance instanceof DeleteFile)) {
             if (process.env.DEBUG) console.error(`Error: delete_file with id ${id} is either not defined or not an instance of DeleteFile.`);
         }
+
+        deleteInstance.delete(guid);
+    };
+
+    /**
+     * Performs a delete operation on the specified set of files.
+     *
+     * @param {string} id - The identifier of the delete_file object.
+     * @param {string[]} guids - Array of file GUIDs to delete.
+     *
+     * @return {void}
+     */
+    global.VDMDeleteFiles = function(id, guids) {
+        const deleteInstance = global.VDM.uikit.delete_file[id];
+
+        if (!Array.isArray(guids) || guids.length === 0) {
+            if (process.env.DEBUG) console.error('No GUIDs provided for deletion.');
+            return;
+        }
+
+        if (!deleteInstance || !(deleteInstance instanceof DeleteFile)) {
+            if (process.env.DEBUG) console.error(`Error: delete_file with id ${id} is either not defined or not an instance of DeleteFile.`);
+            return;
+        }
+
+        const [first, ...rest] = guids;
+
+        const handler = (event) => {
+            if (event.detail?.guid === first) {
+                // Cleanup
+                document.removeEventListener('vdm.uikit.delete.afterFileDelete', handler);
+
+                // Delete remaining without confirmation
+                rest.forEach(guid => deleteInstance.delete(guid, false));
+            }
+        };
+
+        // Listen for confirmation result of first file
+        document.addEventListener('vdm.uikit.delete.afterFileDelete', handler);
+
+        // Initiate first deletion (with confirmation inside delete())
+        deleteInstance.delete(first);
     };
 
 })(window);

@@ -2,8 +2,9 @@
   "name": "vdm.uikit",
   "title": "VDM Uikit",
   "description": "VDM-Uikit is an intuitive and lightweight JavaScript (extension) to Uikit for embedding upload/delete  functionality of server files into your website.",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "main": "dist/js/vdm.min.js",
+  "type": "module",
   "scripts": {
     "build": "rollup -c"
   },

@@ -4,14 +4,24 @@ import { babel } from '@rollup/plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import license from 'rollup-plugin-license';
 import replace from '@rollup/plugin-replace';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES Module-compatible __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load package.json synchronously
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 
 const licenseLine = {
-    banner: `/*! VDM Uikit v${require('./package.json').version} | https://git.vdm.dev/joomla/uikit | (c) 2020 - ${new Date().getFullYear()} Llewellyn van der Merwe | MIT License */`
+    banner: `/*! VDM Uikit v${pkg.version} | https://git.vdm.dev/joomla/uikit | (c) 2020 - ${new Date().getFullYear()} Llewellyn van der Merwe | MIT License */`
 };
 
 const licenseHeader = {
     banner: `/**
- * VDM Uikit v${require('./package.json').version}
+ * VDM Uikit v${pkg.version}
  * https://git.vdm.dev/joomla/uikit
  * (c) 2020 - ${new Date().getFullYear()} Llewellyn van der Merwe
  * MIT License
