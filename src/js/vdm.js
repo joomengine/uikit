@@ -121,22 +121,40 @@ import { DeleteFile } from './core/delete-file';
             return;
         }
 
+        // Dispatch before batch delete
+        document.dispatchEvent(new CustomEvent('vdm.uikit.delete.beforeFilesDelete', { guids: guids }));
+
         const [first, ...rest] = guids;
+        const allGuids = [...guids];
+        const deletedGuids = new Set();
 
-        const handler = (event) => {
-            if (event.detail?.guid === first) {
-                // Cleanup
-                document.removeEventListener('vdm.uikit.delete.afterFileDelete', handler);
+        const afterDeleteHandler = (event) => {
+            const guid = event.detail?.guid;
 
-                // Delete remaining without confirmation
-                rest.forEach(guid => deleteInstance.delete(guid, false));
+            if (!guid || !allGuids.includes(guid)) {
+                return;
+            }
+
+            deletedGuids.add(guid);
+
+            // When the first file is confirmed deleted, delete the rest (without confirmation)
+            if (guid === first) {
+                rest.forEach(g => deleteInstance.delete(g, false));
+            }
+
+            // All deletions done
+            if (deletedGuids.size === allGuids.length) {
+                document.removeEventListener('vdm.uikit.delete.afterFileDelete', afterDeleteHandler);
+                document.dispatchEvent(new CustomEvent('vdm.uikit.delete.afterFilesDelete', { guids: allGuids }));
             }
         };
 
-        // Listen for confirmation result of first file
-        document.addEventListener('vdm.uikit.delete.afterFileDelete', handler);
+        // Attach the after delete listener
+        document.addEventListener('vdm.uikit.delete.afterFileDelete', afterDeleteHandler);
 
-        // Initiate first deletion (with confirmation inside delete())
+        document.dispatchEvent(new CustomEvent('vdm.uikit.delete.beforeFirstFileDelete', { guid: first }));
+
+        // Initiate the first deletion (with confirmation)
         deleteInstance.delete(first);
     };
 
