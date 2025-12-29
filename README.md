@@ -12,7 +12,7 @@ Upload/Delete is an intuitive and lightweight JavaScript solution for embedding 
 
    ```html
    <!-- Include the Uploader script from jsDelivr CDN -->
-   <script src="https://cdn.jsdelivr.net/gh/vdm-io/uikit@latest/dist/js/vdm.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/gh/joomengine/uikit@latest/dist/js/vdm.min.js"></script>
    ```
 
 2. **Markup Your Upload Area:**
@@ -68,7 +68,7 @@ Upload/Delete is an intuitive and lightweight JavaScript solution for embedding 
       }
    };
    </script>
-   <script src="https://cdn.jsdelivr.net/gh/vdm-io/uikit@latest/dist/js/vdm.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/gh/joomengine/uikit@latest/dist/js/vdm.min.js"></script>
    ```
 
 ### Preventing UIkit Collisions
